@@ -36,6 +36,8 @@ workflows:
   main:
     jobs:
       - build-and-push:
+          context:
+            - Albatross-DockerHub
           filters:
             branches:
               only: master
