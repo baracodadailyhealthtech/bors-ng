@@ -1,0 +1,41 @@
+version: 2.1
+
+jobs:
+  build-and-push:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large
+    steps:
+      - checkout
+      - run:
+          name: Docker login
+          command: printf "%s\n" "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+      - run:
+          name: Install QEMU for cross-arch emulation
+          command: docker run --privileged --rm tonistiigi/binfmt --install all
+      - run:
+          name: Set up buildx builder
+          command: |
+            docker buildx create --name mybuilder --use
+            docker buildx inspect --bootstrap
+      - run:
+          name: Build and push multi-arch image
+          command: |
+            set -eu
+            IMAGE=baracodadailyhealthtech/bors-ng-multiplatform
+            TAG_SHORT="${CIRCLE_SHA1:0:8}"
+            docker buildx build \
+              --platform linux/amd64,linux/arm64 \
+              --tag "${IMAGE}:${TAG_SHORT}" \
+              --tag "${IMAGE}:master" \
+              --push \
+              .
+            echo "Pushed ${IMAGE}:${TAG_SHORT} and ${IMAGE}:master"
+
+workflows:
+  main:
+    jobs:
+      - build-and-push:
+          filters:
+            branches:
+              only: master

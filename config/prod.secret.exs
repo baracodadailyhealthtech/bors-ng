@@ -7,6 +7,7 @@ config :bors, BorsNG.Database.RepoPostgres,
   pool_size: {:system, :integer, "POOL_SIZE", 10},
   loggers: [{Ecto.LogEntry, :log, []}],
   ssl: {:system, :boolean, "DATABASE_USE_SSL", true},
+  ssl_opts: [verify: :verify_none],
   prepare: {:system, :atom, "DATABASE_PREPARE_MODE", :named},
   priv: "priv/repo"
 
